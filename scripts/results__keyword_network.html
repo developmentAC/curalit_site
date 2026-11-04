@@ -1,0 +1,445 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 95%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+             #config {
+                 float: left;
+                 width: 400px;
+                 height: 600px;
+             }
+             
+
+             
+             /* position absolute is important and the container has to be relative or absolute as well. */
+          div.popup {
+                 position:absolute;
+                 top:0px;
+                 left:0px;
+                 display:none;
+                 background-color:#f5f4ed;
+                 -moz-border-radius: 3px;
+                 -webkit-border-radius: 3px;
+                 border-radius: 3px;
+                 border: 1px solid #808074;
+                 box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+          }
+
+          /* hide the original tooltip */
+          .vis-tooltip {
+            display:none;
+          }
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+            <div id="config"></div>
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:41759059", "label": "PMID:41759059", "node_type": "article", "pmid": "41759059", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 41759059\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Optimal Duration of Antibiotic Holiday Before Reimplantation in Two-Stage Exchange Arthroplasty for \u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Carlino, Elizabeth K et al. (2026). The Journal of the American Academy of Orthopaedic Surgeons\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/41759059/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/41759059/"}, {"color": "#97c2fc", "font": {"color": "black"}, "id": "prosthetic", "label": "prosthetic", "shape": "dot", "size": 10}, {"color": "#97c2fc", "font": {"color": "black"}, "id": "joint", "label": "joint", "shape": "dot", "size": 10}, {"color": "#97c2fc", "font": {"color": "black"}, "id": "analysis", "label": "analysis", "shape": "dot", "size": 10}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:42659814", "label": "PMID:42659814", "node_type": "article", "pmid": "42659814", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 42659814\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Effectiveness of a novel microprocessor-controlled prosthetic ankle compared with conventional and m\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Kim, Hyokyum et al. (2027). Gait \u0026 posture\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2027\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/42659814/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/42659814/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:42134631", "label": "PMID:42134631", "node_type": "article", "pmid": "42134631", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 42134631\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Emerging Concepts in Periprosthetic Joint Infection Research: RNA, DNA, and Protein Sequencing Tools\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Heckmann, Nathanael D et al. (2026). The Journal of arthroplasty\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/42134631/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/42134631/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:42320653", "label": "PMID:42320653", "node_type": "article", "pmid": "42320653", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 42320653\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Cement Viscosity Is Associated With Aseptic Loosening After Primary Total Knee Arthroplasty: An Anal\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Harris, Andrew et al. (2026). The Journal of arthroplasty\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/42320653/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/42320653/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:42320648", "label": "PMID:42320648", "node_type": "article", "pmid": "42320648", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 42320648\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Time-Dependent Revision Risk and Failure Modes After Total Hip Arthroplasty and Hemiarthroplasty for\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Won, Seok-Hyung et al. (2026). The Journal of arthroplasty\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/42320648/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/42320648/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:41872389", "label": "PMID:41872389", "node_type": "article", "pmid": "41872389", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 41872389\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Moderate leg length discrepancy: a long-term risk factor for hip osteoarthritis?\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Aprato, Alessandro et al. (2026). Journal of orthopaedics and traumatology : official journal of the Italian Society of Orthopaedics and Traumatology\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/41872389/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/41872389/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:41879942", "label": "PMID:41879942", "node_type": "article", "pmid": "41879942", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 41879942\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Retained articulating spacers (1.5 stage) in chronic knee periprosthetic joint infections: an analys\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Balato, Giovanni et al. (2026). Journal of orthopaedics and traumatology : official journal of the Italian Society of Orthopaedics and Traumatology\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/41879942/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/41879942/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:41901758", "label": "PMID:41901758", "node_type": "article", "pmid": "41901758", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 41901758\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Microbiological Characteristics and Clinical Outcomes of Periprosthetic Infections Following Oncolog\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Karampikas, Vasileios et al. (2026). Pathogens (Basel, Switzerland)\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/41901758/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/41901758/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:41902325", "label": "PMID:41902325", "node_type": "article", "pmid": "41902325", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 41902325\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Periprosthetic Joint Infection in Total Ankle Arthroplasty: An Exploratory Analysis of Outcomes and \u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Teehan, Emily et al. (2026). Foot \u0026 ankle international\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/41902325/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/41902325/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:41911675", "label": "PMID:41911675", "node_type": "article", "pmid": "41911675", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 41911675\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e [Diagnosis of Periprosthetic Joint Infections].\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Luger, Markus et al. (2026). Zeitschrift fur Orthopadie und Unfallchirurgie\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/41911675/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/41911675/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:41916545", "label": "PMID:41916545", "node_type": "article", "pmid": "41916545", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 41916545\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Assessing the diagnostic accuracy of synovial fluid send-out laboratory panels for suspected knee pe\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Palmer, Ryan C et al. (2026). The bone \u0026 joint journal\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/41916545/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/41916545/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:41923089", "label": "PMID:41923089", "node_type": "article", "pmid": "41923089", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 41923089\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Accuracy and heterogeneity of histological analysis for detecting periprosthetic joint infections.\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Xu, Jiazheng et al. (2026). Journal of orthopaedic surgery and research\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/41923089/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/41923089/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:41924341", "label": "PMID:41924341", "node_type": "article", "pmid": "41924341", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 41924341\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e A call for inclusion of arthroplasty as essential surgery.\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Delaney, Peter G et al. (2026). Bulletin of the World Health Organization\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/41924341/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/41924341/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:41928592", "label": "PMID:41928592", "node_type": "article", "pmid": "41928592", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 41928592\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Machine Learning Better Predicts Mortality in Patients Undergoing Revision Total Hip Arthroplasty fo\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Galoustian, Nora et al. (2026). Journal of orthopaedic research : official publication of the Orthopaedic Research Society\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/41928592/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/41928592/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:42012037", "label": "PMID:42012037", "node_type": "article", "pmid": "42012037", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 42012037\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Periprosthetic joint infection after oncologic mega-implant reconstruction using a 24-hour cefazolin\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Evrard, R et al. (2026). Acta orthopaedica Belgica\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/42012037/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/42012037/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:42324188", "label": "PMID:42324188", "node_type": "article", "pmid": "42324188", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 42324188\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e [Finite element analysis of tibial fracture risk following lateral unicompartmental knee arthroplast\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Li, Zeyu et al. (2026). Zhongguo xiu fu chong jian wai ke za zhi = Zhongguo xiufu chongjian waike zazhi = Chinese journal of reparative and reconstructive surgery\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/42324188/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/42324188/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:42327666", "label": "PMID:42327666", "node_type": "article", "pmid": "42327666", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 42327666\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Mildly Elevated Preoperative Inflammatory Markers and Postoperative Complications Following Total Kn\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Kubofcik, Josef W et al. (2026). Arthroplasty today\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/42327666/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/42327666/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:42328737", "label": "PMID:42328737", "node_type": "article", "pmid": "42328737", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 42328737\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Are Age-based Cutoffs for THA Logically Consistent?\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Bernstein, Joseph et al. (2026). Clinical orthopaedics and related research\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/42328737/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/42328737/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:42329570", "label": "PMID:42329570", "node_type": "article", "pmid": "42329570", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 42329570\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Preoperative fall history is associated with increased postoperative complications at 2 years after \u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Kang, Hahn et al. (2026). Knee surgery, sports traumatology, arthroscopy : official journal of the ESSKA\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/42329570/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/42329570/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:41945752", "label": "PMID:41945752", "node_type": "article", "pmid": "41945752", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 41945752\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Surgical Approach and Microbiologic Trends in Hip Periprosthetic Joint Infection: A Retrospective Co\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Tyler, John R et al. (2026). Journal of the American Academy of Orthopaedic Surgeons. Global research \u0026 reviews\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/41945752/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/41945752/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:41981426", "label": "PMID:41981426", "node_type": "article", "pmid": "41981426", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 41981426\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e [Differential analysis of gut microbiome in patients with periprosthetic joint infection, aseptic fa\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Muzhabaier, Kari et al. (2026). Zhongguo xiu fu chong jian wai ke za zhi = Zhongguo xiufu chongjian waike zazhi = Chinese journal of reparative and reconstructive surgery\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/41981426/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/41981426/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:41984159", "label": "PMID:41984159", "node_type": "article", "pmid": "41984159", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 41984159\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Prolonged wound drainage past two weeks is associated with increased treatment failure following pro\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Telias, Alberto et al. (2026). International orthopaedics\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/41984159/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/41984159/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:38056722", "label": "PMID:38056722", "node_type": "article", "pmid": "38056722", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 38056722\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e A Comparison of the Periprosthetic Fracture Rate of Cemented and Cementless Total Knee Arthroplastie\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Mohammad, Hasan R et al. (2024). The Journal of arthroplasty\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2024\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/38056722/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/38056722/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:38128624", "label": "PMID:38128624", "node_type": "article", "pmid": "38128624", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 38128624\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Cemented Versus Cementless Femoral Fixation for Total Hip Arthroplasty Following Osteoarthritis.\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Moore, Mallory C et al. (2024). The Journal of arthroplasty\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2024\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/38128624/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/38128624/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:38429555", "label": "PMID:38429555", "node_type": "article", "pmid": "38429555", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 38429555\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Cemented is not superior to cementless total knee arthroplasty for complications: a propensity score\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Monarrez, Ruben et al. (2024). European journal of orthopaedic surgery \u0026 traumatology : orthopedie traumatologie\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2024\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/38429555/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/38429555/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:38521485", "label": "PMID:38521485", "node_type": "article", "pmid": "38521485", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 38521485\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Judicious use of corticosteroid injections prior to shoulder arthroplasty does not compromise outcom\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Cooper, Benjamin J et al. (2024). Journal of shoulder and elbow surgery\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2024\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/38521485/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/38521485/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:38749600", "label": "PMID:38749600", "node_type": "article", "pmid": "38749600", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 38749600\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Efficacy of Intrawound Vancomycin in Prevention of Periprosthetic Joint Infection After Primary Tota\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Mulpur, Praharsha et al. (2024). The Journal of arthroplasty\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2024\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/38749600/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/38749600/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:38751321", "label": "PMID:38751321", "node_type": "article", "pmid": "38751321", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 38751321\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Determination of vancomycin and meropenem in serum and synovial fluid of patients with prosthetic jo\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e He, Jiawei et al. (2024). Journal of mass spectrometry : JMS\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2024\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/38751321/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/38751321/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:40388800", "label": "PMID:40388800", "node_type": "article", "pmid": "40388800", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 40388800\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Serum Amyloid A Is a Promising Tool for Screening Periprosthetic Joint Infection.\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Zhang, Xiaohui et al. (2025). Clinical orthopaedics and related research\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2025\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/40388800/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/40388800/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:41619787", "label": "PMID:41619787", "node_type": "article", "pmid": "41619787", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 41619787\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e The diagnostic accuracy of serum and synovial inflammatory markers in chronic periprosthetic joint i\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Aimaiti, Abudousaimi et al. (2026). Bone \u0026 joint research\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/41619787/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/41619787/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:41623800", "label": "PMID:41623800", "node_type": "article", "pmid": "41623800", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 41623800\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Role of AI in the analysis of total knee arthroplasty.\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Mohanty, Anuraag et al. (2025). Bioinformation\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2025\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/41623800/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/41623800/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:42829101", "label": "PMID:42829101", "node_type": "article", "pmid": "42829101", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 42829101\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Understanding Clinical Practice Variation in Dental Prophylaxis After Total Shoulder Arthroplasty in\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Basdavanos, Alyssa A et al. (2026). Journal of shoulder and elbow surgery\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/42829101/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/42829101/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:39246053", "label": "PMID:39246053", "node_type": "article", "pmid": "39246053", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 39246053\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Total Shoulder Arthroplasty in Patients With Hemophilia A: Greater Odds of Postoperative Bleeding an\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Gillinov, Stephen M et al. (2025). Clinical orthopaedics and related research\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2025\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/39246053/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/39246053/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:39583221", "label": "PMID:39583221", "node_type": "article", "pmid": "39583221", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 39583221\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e The effects of pre-operative anti-osteoporotic use on total joint arthroplasty complications: A nati\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Katz, Luca et al. (2025). Journal of orthopaedics\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2025\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/39583221/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/39583221/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:41461201", "label": "PMID:41461201", "node_type": "article", "pmid": "41461201", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 41461201\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Denosumab Regulates Titanium Particles-Induced Macrophages Inflammation and Osteolysis by Targeting \u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Chen, Zhipeng et al. (2026). Orthopaedic surgery\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/41461201/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/41461201/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:41521036", "label": "PMID:41521036", "node_type": "article", "pmid": "41521036", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 41521036\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Mid- to Long-Term Follow-Up Outcomes of Single Design Rotating Hinge Knee in Infected and Noninfecte\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Gao, Zhisen et al. (2026). Orthopaedic surgery\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/41521036/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/41521036/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:42330164", "label": "PMID:42330164", "node_type": "article", "pmid": "42330164", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 42330164\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Nationwide analysis of adult nongonococcal native septic knee arthritis hospitalizations from 2016 t\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Modi, Naisargi et al. (2026). Proceedings (Baylor University. Medical Center)\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/42330164/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/42330164/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:42330373", "label": "PMID:42330373", "node_type": "article", "pmid": "42330373", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 42330373\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e [Reconstruction of massive femoral bone defects with modular endoprostheses in bone tumors and non-o\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Ortiz, Ezequiel et al. (2026). Medicina\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/42330373/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/42330373/"}, {"color": "#58D68D", "font": {"face": "arial", "size": 10}, "id": "PMID:42330858", "label": "PMID:42330858", "node_type": "article", "pmid": "42330858", "shape": "dot", "size": 15, "title": "\n            \u003cdiv style=\"max-width:400px\"\u003e\n            \u003cb\u003ePMID:\u003c/b\u003e 42330858\u003cbr\u003e\n            \u003cb\u003eTitle:\u003c/b\u003e Validity and Reliability of OpenCap: A low-cost markerless motion capture system for lower extremity\u003cbr\u003e\n            \u003cb\u003eCitation:\u003c/b\u003e Niamsang, Wisavaporn et al. (2026). Computers in biology and medicine\u003cbr\u003e\n            \u003cb\u003eKeywords Found:\u003c/b\u003e prosthetic, joint, analysis\u003cbr\u003e\n            \u003cb\u003eYear:\u003c/b\u003e 2026\u003cbr\u003e\n            \u003cb\u003eClick to view on PubMed\u003c/b\u003e\n            \u003c/div\u003e\n            \u003cbr\u003e\u003cbr\u003e\u003ca href=\u0027https://pubmed.ncbi.nlm.nih.gov/42330858/\u0027 target=\u0027_blank\u0027\u003e\ud83d\udd17 Open in PubMed\u003c/a\u003e", "url": "https://pubmed.ncbi.nlm.nih.gov/42330858/"}]);
+                  edges = new vis.DataSet([{"color": "#95A5A6", "from": "PMID:41759059", "to": "prosthetic", "width": 1}, {"color": "#95A5A6", "from": "PMID:41759059", "to": "joint", "width": 1}, {"color": "#95A5A6", "from": "PMID:41759059", "to": "analysis", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:42659814", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:42134631", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:42320653", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:42320648", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:41872389", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:41879942", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:41901758", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:41902325", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:41911675", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:41916545", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:41923089", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:41924341", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:41928592", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:42012037", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:42324188", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:42327666", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:42328737", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:42329570", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:41945752", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:41981426", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:41984159", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:38056722", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:38128624", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:38429555", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:38521485", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:38749600", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:38751321", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:40388800", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:41619787", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:41623800", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:42829101", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:39246053", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:39583221", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:41461201", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:41521036", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:42330164", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:42330373", "width": 1}, {"color": "#95A5A6", "from": "prosthetic", "to": "PMID:42330858", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:42659814", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:42134631", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:42320653", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:42320648", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:41872389", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:41879942", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:41901758", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:41902325", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:41911675", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:41916545", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:41923089", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:41924341", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:41928592", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:42012037", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:42324188", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:42327666", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:42328737", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:42329570", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:41945752", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:41981426", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:41984159", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:38056722", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:38128624", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:38429555", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:38521485", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:38749600", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:38751321", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:40388800", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:41619787", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:41623800", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:42829101", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:39246053", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:39583221", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:41461201", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:41521036", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:42330164", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:42330373", "width": 1}, {"color": "#95A5A6", "from": "joint", "to": "PMID:42330858", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:42659814", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:42134631", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:42320653", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:42320648", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:41872389", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:41879942", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:41901758", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:41902325", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:41911675", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:41916545", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:41923089", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:41924341", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:41928592", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:42012037", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:42324188", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:42327666", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:42328737", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:42329570", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:41945752", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:41981426", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:41984159", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:38056722", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:38128624", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:38429555", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:38521485", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:38749600", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:38751321", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:40388800", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:41619787", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:41623800", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:42829101", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:39246053", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:39583221", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:41461201", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:41521036", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:42330164", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:42330373", "width": 1}, {"color": "#95A5A6", "from": "analysis", "to": "PMID:42330858", "width": 1}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": true,
+        "filter": [
+            "physics"
+        ]
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+                  // if this network requires displaying the configure window,
+                  // put it in its div
+                  options.configure["container"] = document.getElementById("config");
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+                  // make a custom popup
+                      var popup = document.createElement("div");
+                      popup.className = 'popup';
+                      popupTimeout = null;
+                      popup.addEventListener('mouseover', function () {
+                          console.log(popup)
+                          if (popupTimeout !== null) {
+                              clearTimeout(popupTimeout);
+                              popupTimeout = null;
+                          }
+                      });
+                      popup.addEventListener('mouseout', function () {
+                          if (popupTimeout === null) {
+                              hidePopup();
+                          }
+                      });
+                      container.appendChild(popup);
+
+
+                      // use the popup event to show
+                      network.on("showPopup", function (params) {
+                          showPopup(params);
+                      });
+
+                      // use the hide event to hide it
+                      network.on("hidePopup", function (params) {
+                          hidePopup();
+                      });
+
+                      // hiding the popup through css
+                      function hidePopup() {
+                          popupTimeout = setTimeout(function () { popup.style.display = 'none'; }, 500);
+                      }
+
+                      // showing the popup
+                      function showPopup(nodeId) {
+                          // get the data from the vis.DataSet
+                          var nodeData = nodes.get([nodeId]);
+                          popup.innerHTML = nodeData[0].title;
+
+                          // get the position of the node
+                          var posCanvas = network.getPositions([nodeId])[nodeId];
+
+                          // get the bounding box of the node
+                          var boundingBox = network.getBoundingBox(nodeId);
+
+                          //position tooltip:
+                          posCanvas.x = posCanvas.x + 0.5 * (boundingBox.right - boundingBox.left);
+
+                          // convert coordinates to the DOM space
+                          var posDOM = network.canvasToDOM(posCanvas);
+
+                          // Give it an offset
+                          posDOM.x += 10;
+                          posDOM.y -= 20;
+
+                          // show and place the tooltip.
+                          popup.style.display = 'block';
+                          popup.style.top = posDOM.y + 'px';
+                          popup.style.left = posDOM.x + 'px';
+                      }
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

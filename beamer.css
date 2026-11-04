@@ -1,0 +1,265 @@
+:root {
+  --beamer-blue: #1d4e89;
+  --beamer-blue-light: #e8f0fa;
+  --beamer-green: #2e8b57;
+  --beamer-green-light: #edf7f0;
+  --beamer-orange: #d97706;
+  --beamer-orange-light: #fff3e5;
+  --beamer-purple: #7e57a0;
+  --beamer-purple-light: #f3eef8;
+  --beamer-gray: #333;
+}
+
+.reveal {
+  color: #20242a;
+  background: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.reveal .slides section {
+  box-sizing: border-box;
+  padding: 0.4em 0.65em;
+  text-align: left;
+}
+
+.reveal .slides section::before {
+  position: absolute;
+  inset: -0.5em auto -0.5em -0.65em;
+  width: 0.18em;
+  background: var(--beamer-blue);
+  content: "";
+}
+
+.reveal h2 {
+  margin: 0 0 0.45em;
+  padding-bottom: 0.16em;
+  border-bottom: 3px solid var(--beamer-blue);
+  color: var(--beamer-blue);
+  font-size: 1.28em;
+  line-height: 1.12;
+}
+
+.reveal h3 {
+  margin: 0.25em 0;
+  color: var(--beamer-blue);
+  font-size: 0.92em;
+}
+
+.reveal p,
+.reveal li {
+  font-size: 0.78em;
+  line-height: 1.28;
+}
+
+.reveal ul,
+.reveal ol {
+  margin: 0.22em 0 0.3em 1.05em;
+}
+
+.reveal li {
+  margin: 0.1em 0;
+}
+
+.reveal img.slide-figure {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: 52vh;
+  margin: 0.2em auto 0.45em;
+  object-fit: contain;
+}
+
+.reveal img.medium {
+  max-height: 34vh;
+}
+
+.reveal img.wide {
+  max-height: 46vh;
+}
+
+.reveal img.poster {
+  max-height: 68vh;
+}
+
+.reveal img.logo {
+  max-height: 28vh;
+}
+
+.reveal img.network {
+  max-height: 48vh;
+}
+
+.beamer-block {
+  margin: 0.35em 0;
+  padding: 0.55em 0.75em;
+  border: 2px solid currentColor;
+  border-radius: 0.3em;
+  box-shadow: 0 2px 3px rgb(0 0 0 / 15%);
+  font-size: 0.88em;
+}
+
+.beamer-block h3 {
+  margin-top: 0;
+  font-size: 0.94em;
+}
+
+.beamer-block p,
+.beamer-block li {
+  margin: 0.18em 0;
+  color: #20242a;
+  font-size: 0.83em;
+}
+
+.beamer-block.blue {
+  color: #0000bf;
+  background: #f2f2ff;
+}
+
+.beamer-block.yellow {
+  color: #6e6d02;
+  background: #f6f4b0;
+}
+
+.beamer-block.green {
+  color: #006000;
+  background: #f2f9f2;
+}
+
+.beamer-block.orange {
+  color: #bf6000;
+  background: #fff9f2;
+}
+
+.beamer-block.purple {
+  color: #8f0030;
+  background: #fcf2f7;
+}
+
+.beamer-block.black {
+  color: #404040;
+  background: #f3f3f3;
+}
+
+.beamer-block pre {
+  max-height: 30vh;
+  margin: 0.35em 0 0;
+  font-size: 0.62em;
+}
+
+.beamer-block code {
+  color: #222;
+}
+
+.rings {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  align-items: center;
+  gap: 1em;
+}
+
+.rings-figure {
+  position: relative;
+  width: min(53vh, 37vw);
+  aspect-ratio: 1;
+  margin: auto;
+}
+
+.ring {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  aspect-ratio: 1;
+  border: 0.45em solid;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.ring-outer { width: 100%; border-color: #ea4335; }
+.ring-four { width: 80%; border-color: #fbbc05; }
+.ring-three { width: 60%; border-color: #34a853; }
+.ring-two { width: 40%; border-color: #4285f4; }
+.ring-core { width: 20%; border-color: #a00cf0; }
+/* .ring-core { width: 20%; border-color: #76508b; } */
+
+.rings-labels {
+  display: grid;
+  gap: 0.38em;
+  font-size: 0.72em;
+}
+
+.rings-labels span,
+.rings-labels strong {
+  padding: 0.3em 0.55em;
+  border: 1px solid #bbb;
+  border-radius: 0.25em;
+  background: #f7f7f7;
+}
+
+/* .rings-labels span:nth-child(1) { border-left: 0.35em solid #222; } */
+/* .rings-labels span:nth-child(1) { border-left: 0.35em solid #76508b;; } */
+.rings-labels span:nth-child(1) { border-left: 0.90em solid #a00cf0;; }
+.rings-labels span:nth-child(2) { border-left: 0.90em solid #4285f4; }
+.rings-labels span:nth-child(3) { border-left: 0.90em solid #34a853; }
+.rings-labels span:nth-child(4) { border-left: 0.90em solid #fbbc05; }
+.rings-labels span:nth-child(5) { border-left: 0.90em solid #ea4335; }
+
+.rings-labels strong {
+  margin-top: 0.35em;
+  color: #a00cf0;
+}
+
+.parser-flow {
+  display: grid;
+  justify-items: center;
+  gap: 0.18em;
+  padding: 0.3em 0;
+  text-align: center;
+}
+
+.flow-inputs,
+.flow-outputs,
+.flow-branch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55em;
+}
+
+.flow-node {
+  min-width: 8em;
+  padding: 0.45em 0.65em;
+  border: 2px solid var(--beamer-blue);
+  border-radius: 0.45em;
+  background: #fff;
+  font-size: 0.74em;
+  font-weight: 700;
+}
+
+.flow-node.red { background: #ff9999; }
+.flow-node.gray { min-width: 12em; background: #e6e6e6; }
+.flow-node.green { background: #cce6cc; }
+.flow-node.blue,
+.flow-node.orange { background: #ffe6cc; }
+.flow-node.yellow { background: #ffff33; }
+
+.flow-arrow {
+  color: var(--beamer-blue);
+  font-size: 1.2em;
+  font-weight: 700;
+}
+
+.flow-branch {
+  gap: 0.35em;
+}
+
+.reveal a {
+  color: var(--beamer-blue);
+}
+
+.reveal .progress {
+  color: var(--beamer-blue);
+}
+
+.reveal .slide-number {
+  color: #fff;
+  background: var(--beamer-blue);
+}

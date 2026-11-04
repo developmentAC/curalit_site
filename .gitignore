@@ -1,0 +1,20 @@
+
+# Quarto Project
+/.quarto/
+/_site
+/code/.ipynb_checkpoints/
+
+# MacOS
+.DS_Store
+**/*.quarto_ipynb
+
+# Python
+__pycache__/
+.venv
+
+# JupyterLite build cache (must never be committed: a stale cache makes
+# `jupyter lite build` skip steps and silently ship a site with no kernels)
+.jupyterlite.doit.db
+
+# if using GitHub actions, build projects to docs/ folder at GitHub Pages
+docs/
