@@ -1,5 +1,7 @@
 project:
   type: default
+  output-dir: docs
   render:
     - talk.qmd
-
+  resources:
+    - scripts/*.html

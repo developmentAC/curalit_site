@@ -5,6 +5,7 @@ author: "Oliver Bonham-Carter, Ph.D."
 institute: "Department of Computer and Information Science | Allegheny College"
 date: 5-November-2026
 date-format: "DD MMMM YYYY"
+output-file: index.html
 format:
   revealjs:
     theme: default
