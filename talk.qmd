@@ -310,7 +310,7 @@ K-means clustering of cosine similarity shows diversity in the results.
 *High-End, Local Literature Curation With AI Support*
 
 <center>
-![](assets/curalit/curalit_logo.png){width="20%"}
+![](assets/curalit/curalit_logo_i.png){width="20%"}
 </center>
 
 <center>
@@ -332,7 +332,7 @@ CuraLit GitHub Project: <a href="https://github.com/developmentAC/curalit">https
 
 <center>
 
-![](assets/curalit/curalit_logo.png){width="15%"}
+![](assets/curalit/curalit_logo_i.png){width="15%"}
 ![](assets/equals_i.png){width="04%"}
 ![](assets/rust_logo.png){width="10%"}
 ![](assets/plus_i.png){width="04%"}
