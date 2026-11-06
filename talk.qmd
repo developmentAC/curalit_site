@@ -515,26 +515,37 @@ CuraLit GitHub Project: <a href="https://github.com/developmentAC/curalit">https
 ## Cited Works
 
 ::: {.beamer-block .green}
-- **Bonham-Carter, Oliver**  *An Efficient Text Analysis Tool for Streamlining Literature Reviews: Text Analysis To Streamline Literature Reviews.* The International FLAIRS Conference Proceedings. Vol. 38. 2025
-
-- **Knox, C. J.** *et al.* *Mentoring across difference and
+- **Bonham-Carter, O.** 2025 *An Efficient Text Analysis Tool for Streamlining Literature Reviews: Text Analysis To Streamline Literature Reviews.* The International FLAIRS Conference Proceedings. Vol. 38.
+- **Knox, C. J.** *et al.* 2024. *Mentoring across difference and
 distance: building effective virtual research opportunities
 for underrepresented minority undergraduate students in
-biological sciences*. Mbio 15(1):e01452–23, 2024
-- **Alisic, A.,** *et al.* *How long can I wait
+biological sciences*. Mbio 15(1):e01452–23
+- **Alisic, A.** *et al.* 2024. *How long can I wait
 and how much frustration can I stand? Volitional traits and
 students’ phd-intention and pursuit.* International Journal
-for Educational and Vocational Guidance 24(1):99–123, 2024
-- **Ossovski, E.,** *et al.* *Frustration
+for Educational and Vocational Guidance 24(1):99–123.
+- **Ossovski, E.** *et al.* 2024. *Frustration
 tolerance among computer-science-related novice university
 students.* European Journal of Engineering Education 1–18.
-Park, H.; Ahn, B.; and Kim, T. 2024. An exploration of
-research trends on metaverse: topic modeling with latent
-dirichlet allocation. Quality & Quantity 1–20, 2024
+
 :::
 
+## Cited Works (cont.)
 
-
+::: {.beamer-block .green}
+- **Park, H.** *et al* 2024. *An exploration of
+research trends on metaverse: topic modeling with latent
+dirichlet allocation*. Quality & Quantity 1–20
+- **Tong, Y.** *et al* 2024. *A visual learning
+analytics approach for knowledge building: Impact on
+students’ epistemic understanding of discourse, productive
+inquiry and domain knowledge*. British Journal of
+Educational Technology 55(3):992–1019
+- **Ahmad, M.** *et al* 2024. *Audio-visual
+learning in secondary school: A review of advantages and
+challenges in education*. Innovative Teaching and Learning
+Journal 8(1):15–23
+:::
 
 ## Reach Out!
 
